@@ -19,6 +19,7 @@ const FashionRoutes=require("./routes/Categories");
 const productDetails=require("./routes/productDetails");
 const createContentRoutes=require("./routes/CreateContent");
 const manageContentsRoutes=require("./routes/ManageContents");
+const registerRoutes=require("./routes/register");
 
 
 const auth = require("./Authentication/auth");
@@ -30,10 +31,10 @@ connectDB();
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
 app.use(corsMiddleware);
 
 // Login - public route
+app.use("/api",registerRoutes);
 app.use("/api", loginRoutes);
 
 // Protected routes
