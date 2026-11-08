@@ -1,14 +1,16 @@
 const mongoose=require("mongoose");
 
-const contentSchema=new mongoose.Schema({
+const trendingSchema=new mongoose.Schema({
     name:{
         type:String,
-        required:true,
-        trim:true
+        required:true
     },
-    artist:{
+    category:{
         type:String,
         required:true
+    },
+    description:{
+        type:String
     },
     files:[
         {
@@ -28,4 +30,4 @@ const contentSchema=new mongoose.Schema({
     timestamps:true
 })
 
-module.exports=mongoose.model("Content",contentSchema);
+module.exports=mongoose.model("Trending",trendingSchema);
