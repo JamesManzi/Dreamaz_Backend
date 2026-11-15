@@ -22,7 +22,7 @@ router.get("/getProducts",async(req,res)=>{
                 message:"Products not Found"
             })
         }
-        res.status(200).json({
+        res.status(201).json({
             success:true,
             products,
             totalProducts,

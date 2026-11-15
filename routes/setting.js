@@ -1,6 +1,5 @@
 const express=require("express");
 const bcrypt=require("bcryptjs");
-const mongoose=require("mongoose");
 const User=require("../models/User");
 const {cloudinary,upload}=require("../cloudinary");
 const router=express.Router();
@@ -34,7 +33,7 @@ router.put("/setting/:id", upload.single("profile"), async (req, res) => {
             );
 
             if (!isMatch) {
-                return res.json({
+                return res.status(401).json({
                     success: false,
                     message: "Current Password is Incorrect"
                 });

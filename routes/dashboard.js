@@ -15,7 +15,7 @@ router.get("/admin-dashboard/:id", async (req, res) => {
         }
 
         if (user.role !== "admin") {
-            return res.status(403).json({
+            return res.status(401).json({
                 success: false,
                 message: "Admin access required"
             });
@@ -34,7 +34,7 @@ router.get("/admin-dashboard/:id", async (req, res) => {
         });
         const categories=await Product.distinct("category");
         const totalCategories=categories.length;
-        res.json({
+        res.status(201).json({
             success: true,
             user,
             totalUsers,

@@ -16,7 +16,7 @@ router.get("/user/:id", async (req, res) => {
             });
         }
 
-        res.json({
+        res.status(201).json({
             success: true,
             user: user
         });

@@ -48,7 +48,7 @@ router.post("/updateProduct/:id",async(req,res)=>{
                 message:"Product not Found"
             })
         }
-        res.status(200).json({
+        res.status(201).json({
             success:true,
             UpdatedProduct,
             message:"Product Updated successfully"

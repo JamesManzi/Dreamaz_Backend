@@ -14,7 +14,7 @@ router.get("/users",async(req,res)=>{
             })
         }
 
-        res.json({
+        res.status(201).json({
             success:true,
             users
         })

@@ -28,14 +28,14 @@ router.get("/getFashionProducts",async(req,res)=>{
 router.get("/getAccessories",async(req,res)=>{
     try {
         const accessories=await Product.find({category:"Accessories"});
-        if(accessories){
+        if(!accessories){
             return res.status(404).json({
                 success:false,
                 message:"No Accessories Found"
             })
         }
 
-        res.status(200).json({
+        res.status(201).json({
             success:true,
             accessories
         })

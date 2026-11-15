@@ -20,7 +20,7 @@ router.post("/create-user", async (req, res) => {
         });
 
         if (existingUser) {
-            return res.status(409).json({
+            return res.status(400).json({
                 success: false,
                 message: "User already exists"
             });

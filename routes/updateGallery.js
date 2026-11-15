@@ -47,9 +47,9 @@ router.put("/manage-gallery/:id",upload.array("files",15),async(req,res)=>{
     const newFiles = req.files.map((file) => ({
         url: file.path,
         public_id: file.filename,
-        resource_type: file.mimetype.startsWith("video/")
-            ? "video"
-            : "image"
+        resource_type: file.mimetype.startsWith("image/")
+            ? "image"
+            : "video"
     }));
 
     updateData.files = [

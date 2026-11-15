@@ -17,13 +17,13 @@ const getProducts=require("./routes/getProducts");
 const deleteProduct=require("./routes/deleteProduct");
 const FashionRoutes=require("./routes/Categories");
 const productDetails=require("./routes/productDetails");
-const createContentRoutes=require("./routes/CreateContent");
-const manageContentsRoutes=require("./routes/ManageContents");
 const registerRoutes=require("./routes/register");
 const clientDashboardRoutes=require("./routes/clientDashboard");
 const FashionAnimation=require("./routes/FashionAnimation");
 const CategoryTrendings=require("./routes/CategoryTrending");
 const createTrending=require("./routes/CreateTrendings");
+const loadProducts=require("./routes/loadProducts");
+const buyerProfile=require("./routes/buyerProfile");
 
 
 const auth = require("./Authentication/auth");
@@ -42,6 +42,10 @@ app.use("/api",registerRoutes);
 app.use("/api", loginRoutes);
 app.use("/api",FashionAnimation);
 app.use("/api",CategoryTrendings);
+app.use("/api",FashionRoutes);
+app.use("/api",getProducts);
+app.use("/api",productDetails);
+app.use("/api",loadProducts);
 
 // Protected routes
 app.use("/api", auth, createUser);
@@ -53,14 +57,10 @@ app.use("/api", auth, Setting);
 app.use("/api",auth,createProductRoutes);
 app.use("/api",auth,getUsers);
 app.use("/api",auth,updateProduct);
-app.use("/api",auth,getProducts);
 app.use("/api",auth,deleteProduct);
-app.use("/api",auth,productDetails);
-app.use("/api",auth,createContentRoutes);
-app.use("/api",auth,manageContentsRoutes);
 app.use("/api",auth,clientDashboardRoutes);
-app.use("/api",FashionRoutes);
 app.use("/api",auth,createTrending);
+app.use("/api",auth,buyerProfile);
 
 const Port = process.env.PORT || 8000;
 

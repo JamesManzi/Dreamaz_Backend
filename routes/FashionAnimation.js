@@ -13,7 +13,7 @@ router.get("/fashionAnimation",async(req,res)=>{
                 message:"No Fashion products found"
             })
         }
-        res.status(200).json({
+        res.status(201).json({
             success:true,
             fashionProducts
         })

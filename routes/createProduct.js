@@ -33,7 +33,7 @@ router.post("/createProduct",upload.array("files"),async(req,res)=>{
             files
         })
         
-        res.status(200).json({
+        res.status(201).json({
             success:true,
             createdProduct,
             message:"Product Created Successfully"

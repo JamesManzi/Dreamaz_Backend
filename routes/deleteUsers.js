@@ -14,7 +14,12 @@ router.delete("/users/:id",async(req,res)=>{
             })
         }
 
-        await User.findByIdAndDelete(req.params.id);
+        await User.findByIdAndDelete(
+            req.params.id,
+            {
+                new:true
+            }
+        );
         res.status(201).json({
             success:true,
             message:"User Deleted Successfully"
