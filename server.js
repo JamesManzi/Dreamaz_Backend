@@ -1,4 +1,5 @@
 const express = require("express");
+const cors=require("cors");
 require("dotenv").config();
 const createProductRoutes=require("./routes/createProduct");
 
@@ -43,7 +44,7 @@ connectDB();
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(corsMiddleware);
+app.use(cors());
 
 // Login - public route
 app.use("/api",registerRoutes);
