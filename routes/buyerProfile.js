@@ -6,7 +6,7 @@ router.get("/buyerProfile",async(req,res)=>{
     try {
         const user=await User.findById(req.userId);
         if(!user){
-            return res.status(400).json({
+            return res.status(404).json({
                 success:false,
                 message:"User not found"
             })
@@ -30,7 +30,7 @@ router.put("/updateBuyer",async(req,res)=>{
         const {username,email,password}=req.body;
         const user=await User.findById(req.userId);
         if(!user){
-            return res.status(400).json({
+            return res.status(404).json({
                 success:false,
                 message:"User not Found"
 
@@ -41,7 +41,7 @@ router.put("/updateBuyer",async(req,res)=>{
             updatedData.username=req.body.username;
         }
         if(req.body.email){
-            updateData.email=req.body.email;
+            updatedData.email=req.body.email;
         }
         if(req.body.password){
             updatedData.password=req.body.password;
