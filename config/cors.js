@@ -2,7 +2,9 @@ const cors=require("cors");
 
 const allowed_origins=process.env.ALLOWED_ORIGINS
 ?process.env.ALLOWED_ORIGINS.split(",").map(origin=>origin.trim())
-:["http://localhost:5173"];
+:["https://dreamaz-project-yr6w-dun.vercel.app",
+        "http://localhost:5173",
+        "https://dreamaz-project-yr6w-l1i04phrz-carlos078754s-projects.vercel.app"]
 
 const corsOptions={
     origin:function(origin,callback){
