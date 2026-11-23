@@ -27,58 +27,61 @@ router.get("/orderStats", async (req, res) => {
     }
 });
 
-// Get total orders only
-router.get("/totalOrders", async (req, res) => {
+router.delete("/order/:id",async(req,res)=>{
     try {
-        const totalOrders = await Order.countDocuments();
-
-        return res.status(200).json({
-            success: true,
-            totalOrders
-        });
+        const order=await Order.findById(req.params.id);
+        if(!order){
+            return res.status(404).json({
+                success:false,
+                message:"Order not Found"
+            })
+        }
+        await Order.findByIdAndDelete(
+            req.params.id,
+            {
+                new:true
+            }
+        );
+        res.status(201).json({
+            success:true,
+            message:"Order Deleted Successfully"
+        })
     } catch (error) {
-        console.error("Total Orders Error:", error);
+        console.log("deleting orders Error",error);
         return res.status(500).json({
-            success: false,
-            message: "Failed to fetch total orders"
-        });
+            success:false,
+            message:"Internal Server Error"
+        })
     }
-});
+})
 
-// Get pending orders only
-router.get("/pendingOrders", async (req, res) => {
+router.put("/updateOrder/:id",async(req,res)=>{
     try {
-        const pendingOrders = await Order.countDocuments({ status: "pending" });
+        const order=await Order.findById(req.params.id);
+        if(!order){
+            return res.status(404).json({
+                success:false,
+                message:"Order not Found"
+            })
+        }
+        await Order.findByIdAndUpdate(
+            req.params.id,
+            {
+                new:true
+            }
+        );
 
-        return res.status(200).json({
-            success: true,
-            pendingOrders
-        });
+        res.status(201).json({
+            success:true,
+            message:"Order Updated Successfully"
+        })
     } catch (error) {
-        console.error("Pending Orders Error:", error);
-        return res.status(500).json({
-            success: false,
-            message: "Failed to fetch pending orders"
-        });
+        console.log("Internal Server Error",error);
+        res.status(500).json({
+            success:false,
+            message:"Internal Server Error"
+        })
     }
-});
-
-// Get delivered orders only
-router.get("/deliveredOrders", async (req, res) => {
-    try {
-        const deliveredOrders = await Order.countDocuments({ status: "delivered" });
-
-        return res.status(200).json({
-            success: true,
-            deliveredOrders
-        });
-    } catch (error) {
-        console.error("Delivered Orders Error:", error);
-        return res.status(500).json({
-            success: false,
-            message: "Failed to fetch delivered orders"
-        });
-    }
-});
+})
 
 module.exports = router;

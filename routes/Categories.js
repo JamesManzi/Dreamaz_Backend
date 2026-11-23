@@ -48,28 +48,35 @@ router.get("/getAccessories",async(req,res)=>{
     }
 })
 
-router.get("/prints",async(req,res)=>{
+router.get("/prints", async (req, res) => {
     try {
-        const prints=await Product.find({category:"Prints"});
-        if(!prints){
-            return res.status(404).json({
-                success:false,
-                message:"No Prints Found"
-            })
-        };
+        const prints = await Product.find({
+            category: "Prints"
+        }).sort({ createdAt: -1 });
 
-        res.status(200).json({
-            success:false,
+        if (prints.length === 0) {
+            return res.status(200).json({
+                success: true,
+                message: "No Prints Found",
+                prints: []
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: "Prints fetched successfully",
             prints
-        })
+        });
+
     } catch (error) {
-        console.log("Fetching Prints Error",error);
+        console.error("Fetching Prints Error:", error);
+
         return res.status(500).json({
-            success:false,
-            message:"Fetching Prints Error"
-        })
+            success: false,
+            message: "Fetching Prints Error"
+        });
     }
-})
+});
 
 
 router.get("/Collections",async(req,res)=>{
