@@ -1,65 +1,120 @@
-const express=require("express");
-const Product=require("../models/Product");
 
-const router=express.Router();
+const express = require("express");
+const Product = require("../models/Product");
+const { upload } = require("../config/cloudinary");
 
-router.post("/updateProduct/:id",async(req,res)=>{
-    try {
-        const {name,price,category,availability,description}=req.body;
+const router = express.Router();
 
-        const updatedData={};
-        if(req.body.name){
-            updatedData.name=name
-        }
-        if(req.body.price){
-            updatedData.price=price
-        }
-        if(req.body.category){
-            updatedData.category=category
-        }
-        if(req.body.availability){
-            updatedData.availability=availability
-        }
+// UPDATE PRODUCT
+router.post(
+    "/updateProduct/:id",
+    upload.array("files", 15),
+    async (req, res) => {
+        try {
 
-        if(req.body.description){
-            updatedData.description=description
-        }
+            const {
+                name,
+                price,
+                category,
+                availability,
+                description,
+                existingFiles
+            } = req.body;
 
-        if(req.files){
-            updatedData.files=req.files.map((file)=>({
-                url:file.path,
-                type:file.mimetype.startsWith("image/")
-                ?"image"
-                :"video"
-            }))
-        }
-
-        const UpdatedProduct=await Product.findByIdAndUpdate(
-            req.params.id,
-            updatedData,
-            {
-                new:true
+            // Validate product ID
+            if (!req.params.id) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Product ID is required."
+                });
             }
-        )
 
-        if(!UpdatedProduct){
-            res.status(404).json({
-                success:false,
-                message:"Product not Found"
-            })
+            // Validate required fields
+            if (!name?.trim()) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Product name is required."
+                });
+            }
+
+            if (
+                price === undefined ||
+                price === "" ||
+                !Number.isFinite(Number(price)) ||
+                Number(price) < 0
+            ) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Enter a valid product price."
+                });
+            }
+
+            // Parse existing media
+            let retainedFiles;
+
+            try {
+                retainedFiles = JSON.parse(existingFiles || "[]");
+
+                if (!Array.isArray(retainedFiles)) {
+                    throw new Error("Invalid media format");
+                }
+
+            } catch (error) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Invalid existing media."
+                });
+            }
+
+            // Newly uploaded Cloudinary files
+            const newFiles = (req.files || []).map(file => ({
+                url: file.path,
+                type: file.mimetype.startsWith("image/")
+                    ? "image"
+                    : "video"
+            }));
+
+            // Update product
+            const updatedProduct = await Product.findByIdAndUpdate(
+                req.params.id,
+                {
+                    name: name.trim(),
+                    price: Number(price),
+                    category,
+                    availability,
+                    description,
+                    files: [...retainedFiles, ...newFiles]
+                },
+                {
+                    new: true,
+                    runValidators: true
+                }
+            );
+
+            if (!updatedProduct) {
+                return res.status(404).json({
+                    success: false,
+                    message: "Product not found."
+                });
+            }
+
+            return res.status(200).json({
+                success: true,
+                message: "Product updated successfully.",
+                product: updatedProduct
+            });
+
+        } catch (error) {
+
+            console.error("Updating Product Error:", error);
+
+            return res.status(500).json({
+                success: false,
+                message: error.message || "Unable to update product."
+            });
+
         }
-        res.status(201).json({
-            success:true,
-            UpdatedProduct,
-            message:"Product Updated successfully"
-        })
-    } catch (error) {
-        console.log("updating Product Error",error);
-        return res.status(500).json({
-            success:false,
-            message:"Updating Product Error"
-        })
     }
-})
+);
 
-module.exports=router;
+module.exports = router;
