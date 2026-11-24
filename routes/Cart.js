@@ -175,5 +175,87 @@ router.get("/cartCount", async (req, res) => {
     }
 });
 
+// REMOVE ONE PRODUCT FROM CART
+
+router.delete("/removeCart/:productId", async (req, res) => {
+    try {
+        const buyerId = req.userId;
+        const { productId } = req.params;
+
+        const cart = await Cart.findOne({ buyer: buyerId });
+
+        if (!cart) {
+            return res.status(404).json({
+                success: false,
+                message: "Cart not found."
+            });
+        }
+
+        const itemIndex = cart.items.findIndex(
+            (item) => item.product.toString() === productId
+        );
+
+        if (itemIndex === -1) {
+            return res.status(404).json({
+                success: false,
+                message: "Product not found in your cart."
+            });
+        }
+
+        cart.items.splice(itemIndex, 1);
+
+        await cart.save();
+
+        return res.status(200).json({
+            success: true,
+            message: "Product removed successfully!",
+            cart
+        });
+
+    } catch (error) {
+        console.error("Remove cart error:", error);
+
+        return res.status(500).json({
+            success: false,
+            message: "Failed to remove product."
+        });
+    }
+});
+
+
+// CLEAR ENTIRE CART
+
+router.delete("/clearCart", async (req, res) => {
+    try {
+        const buyerId = req.userId;
+
+        const cart = await Cart.findOne({ buyer: buyerId });
+
+        if (!cart) {
+            return res.status(404).json({
+                success: false,
+                message: "Cart not found."
+            });
+        }
+
+        cart.items = [];
+
+        await cart.save();
+
+        return res.status(200).json({
+            success: true,
+            message: "Cart cleared successfully!",
+            cart
+        });
+
+    } catch (error) {
+        console.error("Clear cart error:", error);
+
+        return res.status(500).json({
+            success: false,
+            message: "Failed to clear cart."
+        });
+    }
+});
 
 module.exports = router;
