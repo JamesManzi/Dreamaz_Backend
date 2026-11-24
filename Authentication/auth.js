@@ -1,6 +1,5 @@
 const jwt=require("jsonwebtoken");
-
-
+// Configuring JsonWebToken Protection
 const auth = (req, res, next) => {
     try {
         const authHeader = req.headers.authorization;

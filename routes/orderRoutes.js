@@ -6,11 +6,9 @@ const router = express.Router();
 // Get total, pending, and delivered order counts
 router.get("/orderStats", async (req, res) => {
     try {
-        const [totalOrders, pendingOrders, deliveredOrders] = await Promise.all([
-            Order.countDocuments(),
-            Order.countDocuments({ status: "pending" }),
-            Order.countDocuments({ status: "delivered" })
-        ]);
+        const totalOrders=await Order.countDocuments();
+        const pendingOrders=await Order.countDocuments({orderStatus:"Pending"});
+        const deliveredOrders=await Order.countDocuments({orderStatus:"Delivered"});
 
         return res.status(200).json({
             success: true,
@@ -83,5 +81,34 @@ router.put("/updateOrder/:id",async(req,res)=>{
         })
     }
 })
+
+// Get all orders
+router.get("/getAllOrders", async (req, res) => {
+    try {
+        const orders = await Order.find().sort({ createdAt: -1 });
+
+        if (orders.length === 0) {
+            return res.status(200).json({
+                success: true,
+                message: "No orders found",
+                orders: []
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: "Orders fetched successfully",
+            orders
+        });
+
+    } catch (error) {
+        console.log("Fetching Orders Error:", error);
+
+        return res.status(500).json({
+            success: false,
+            message: "Internal Server Error"
+        });
+    }
+});
 
 module.exports = router;
