@@ -1,46 +1,64 @@
-const express=require("express");
-const Trending=require("../models/Trending");
-const router=express.Router();
-const {cloudinary,upload}=require("../cloudinary");
 
-router.delete("/deleteTrending/:id",async(req,res)=>{
+const express = require("express");
+const Trending = require("../models/Trending");
+const router = express.Router();
+const { cloudinary } = require("../cloudinary");
+
+router.delete("/deleteTrending/:id", async (req, res) => {
     try {
-        const product=await Trending.findById(req.params.id);
-        if(!product){
-            return res.status(401).json({
-                success:false,
-                message:"Product not Found"
-            })
+        const { id } = req.params;
+
+        if (!require("mongoose").Types.ObjectId.isValid(id)) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid trending ID"
+            });
         }
 
-        if(product.files&&product.files.length>0){
-            for(const file of product.files){
-                await cloudinary.uploader.destroy(
-                    file.public_id,
-                    {
-                        resource_type:file.type
-                    }
+        // Find and delete the trending document
+        const trending = await Trending.findByIdAndDelete(id);
+
+        if (!trending) {
+            return res.status(404).json({
+                success: false,
+                message: "Trending entry not found"
+            });
+        }
+
+        // Clean up Cloudinary files separately
+        const cleanupResults = await Promise.allSettled(
+            (trending.files || [])
+                .filter(file => file.public_id)
+                .map(file =>
+                    cloudinary.uploader.destroy(
+                        file.public_id,
+                        {
+                            resource_type:
+                                file.type === "video" ? "video" : "image"
+                        }
+                    )
                 )
-            }
-        }
-        const deletedProduct=await Trending.findByIdAndDelete(
-            req.params.id,
-            {
-                new:true
-            }
         );
-        res.status(201).json({
-            success:true,
-            message:"Product Deleted Successfully"
-        })
+
+        const failedCleanup = cleanupResults.filter(
+            result => result.status === "rejected"
+        );
+
+        return res.status(200).json({
+            success: true,
+            message: "Trending entry deleted successfully",
+            cloudinaryCleanupFailed: failedCleanup.length
+        });
+
     } catch (error) {
-        console.log("Delete Item Error",error);
+        console.error("Delete Trending Error:", error);
+
         return res.status(500).json({
-            success:false,
-            message:"Delete Item Error"
-        })
+            success: false,
+            message: "Failed to delete trending entry",
+            error: error.message
+        });
     }
-})
+});
 
-
-module.exports=router;
+module.exports = router;
