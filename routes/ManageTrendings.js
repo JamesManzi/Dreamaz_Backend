@@ -3,10 +3,15 @@ const express = require("express");
 const mongoose = require("mongoose");
 const Trending = require("../models/Trending");
 const router = express.Router();
+
 const { cloudinary, upload } = require("../cloudinary");
+
+// Import your actual authentication middleware
+const { verifyToken } = require("../middleware/auth");
 
 router.put(
     "/updateTrending/:id",
+    verifyToken,
     upload.array("files"),
     async (req, res) => {
         try {
@@ -20,6 +25,13 @@ router.put(
                 });
             }
 
+            if (!name?.trim() || !category?.trim()) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Name and category are required"
+                });
+            }
+
             const trending = await Trending.findById(id);
 
             if (!trending) {
@@ -29,24 +41,17 @@ router.put(
                 });
             }
 
-            if (!name?.trim() || !category?.trim()) {
-                return res.status(400).json({
-                    success: false,
-                    message: "Name and category are required"
-                });
-            }
-
-            // Keep a copy for Cloudinary cleanup later.
             const originalFiles = [...(trending.files || [])];
 
-            // Preserve selected existing files.
             let existingFiles = originalFiles;
 
             if (req.body.existingFiles !== undefined) {
                 let requestedFiles;
 
                 try {
-                    requestedFiles = JSON.parse(req.body.existingFiles);
+                    requestedFiles = JSON.parse(
+                        req.body.existingFiles
+                    );
 
                     if (!Array.isArray(requestedFiles)) {
                         throw new Error("Invalid files format");
@@ -60,15 +65,18 @@ router.put(
 
                 existingFiles = originalFiles.filter(oldFile =>
                     requestedFiles.some(requested =>
-                        (oldFile.public_id &&
-                            requested.public_id === oldFile.public_id) ||
-                        (!oldFile.public_id &&
-                            requested.url === oldFile.url)
+                        (
+                            oldFile.public_id &&
+                            requested.public_id === oldFile.public_id
+                        ) ||
+                        (
+                            !oldFile.public_id &&
+                            requested.url === oldFile.url
+                        )
                     )
                 );
             }
 
-            // Add newly uploaded files.
             const newFiles = (req.files || []).map(file => ({
                 url: file.path,
                 type: file.mimetype.startsWith("video/")
@@ -77,15 +85,18 @@ router.put(
                 public_id: file.filename || file.public_id
             }));
 
-            // Update document.
             trending.name = name.trim();
             trending.category = category.trim();
             trending.description = description || "";
-            trending.files = [...existingFiles, ...newFiles];
+
+            trending.files = [
+                ...existingFiles,
+                ...newFiles
+            ];
 
             const updatedItem = await trending.save();
 
-            // Remove files no longer used by this Trending entry.
+            // Identify removed Cloudinary files.
             const retainedIds = new Set(
                 updatedItem.files
                     .map(file => file.public_id)
@@ -93,23 +104,35 @@ router.put(
             );
 
             const removedFiles = originalFiles.filter(
-                file => file.public_id &&
+                file =>
+                    file.public_id &&
                     !retainedIds.has(file.public_id)
             );
 
-            await Promise.allSettled(
+            // Clean up removed media.
+            const cleanupResults = await Promise.allSettled(
                 removedFiles.map(file =>
-                    cloudinary.uploader.destroy(file.public_id, {
-                        resource_type:
-                            file.type === "video" ? "video" : "image"
-                    })
+                    cloudinary.uploader.destroy(
+                        file.public_id,
+                        {
+                            resource_type:
+                                file.type === "video"
+                                    ? "video"
+                                    : "image"
+                        }
+                    )
                 )
             );
+
+            const failedCleanup = cleanupResults.filter(
+                result => result.status === "rejected"
+            ).length;
 
             return res.status(200).json({
                 success: true,
                 message: "Trending entry updated successfully",
-                updatedItem
+                updatedItem,
+                cloudinaryCleanupFailed: failedCleanup
             });
 
         } catch (error) {

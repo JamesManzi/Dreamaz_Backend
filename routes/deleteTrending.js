@@ -1,64 +1,77 @@
 
 const express = require("express");
+const mongoose = require("mongoose");
 const Trending = require("../models/Trending");
 const router = express.Router();
+
 const { cloudinary } = require("../cloudinary");
 
-router.delete("/deleteTrending/:id", async (req, res) => {
-    try {
-        const { id } = req.params;
+// Import your actual authentication middleware
+const { verifyToken } = require("../middleware/auth");
 
-        if (!require("mongoose").Types.ObjectId.isValid(id)) {
-            return res.status(400).json({
-                success: false,
-                message: "Invalid trending ID"
-            });
-        }
+router.delete(
+    "/deleteTrending/:id",
+    verifyToken,
+    async (req, res) => {
+        try {
+            const { id } = req.params;
 
-        // Find and delete the trending document
-        const trending = await Trending.findByIdAndDelete(id);
+            if (!mongoose.Types.ObjectId.isValid(id)) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Invalid trending ID"
+                });
+            }
 
-        if (!trending) {
-            return res.status(404).json({
-                success: false,
-                message: "Trending entry not found"
-            });
-        }
+            const trending = await Trending.findById(id);
 
-        // Clean up Cloudinary files separately
-        const cleanupResults = await Promise.allSettled(
-            (trending.files || [])
-                .filter(file => file.public_id)
-                .map(file =>
-                    cloudinary.uploader.destroy(
-                        file.public_id,
-                        {
-                            resource_type:
-                                file.type === "video" ? "video" : "image"
-                        }
+            if (!trending) {
+                return res.status(404).json({
+                    success: false,
+                    message: "Trending entry not found"
+                });
+            }
+
+            // Delete database document.
+            await Trending.findByIdAndDelete(id);
+
+            // Clean up Cloudinary media.
+            const cleanupResults = await Promise.allSettled(
+                (trending.files || [])
+                    .filter(file => file.public_id)
+                    .map(file =>
+                        cloudinary.uploader.destroy(
+                            file.public_id,
+                            {
+                                resource_type:
+                                    file.type === "video"
+                                        ? "video"
+                                        : "image"
+                            }
+                        )
                     )
-                )
-        );
+            );
 
-        const failedCleanup = cleanupResults.filter(
-            result => result.status === "rejected"
-        );
+            const failedCleanup = cleanupResults.filter(
+                result => result.status === "rejected"
+            ).length;
 
-        return res.status(200).json({
-            success: true,
-            message: "Trending entry deleted successfully",
-            cloudinaryCleanupFailed: failedCleanup.length
-        });
+            return res.status(200).json({
+                success: true,
+                message: "Trending entry deleted successfully",
+                cloudinaryCleanupFailed: failedCleanup
+            });
 
-    } catch (error) {
-        console.error("Delete Trending Error:", error);
+        } catch (error) {
+            console.error("Delete Trending Error:", error);
 
-        return res.status(500).json({
-            success: false,
-            message: "Failed to delete trending entry",
-            error: error.message
-        });
+            return res.status(500).json({
+                success: false,
+                message: "Failed to delete trending entry",
+                error: error.message
+            });
+        }
     }
-});
+);
 
 module.exports = router;
