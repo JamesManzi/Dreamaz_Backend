@@ -50,32 +50,25 @@ router.get("/orderStats", async (req, res) => {
 });
 
 
-// GET ALL ORDERS
 router.get("/getAllOrders", async (req, res) => {
-
     try {
-
         const orders = await Order.find()
             .populate("buyer", "username name fullName email")
             .sort({ createdAt: -1 });
 
         return res.status(200).json({
             success: true,
-            message: "Orders fetched successfully",
             orders
         });
 
     } catch (error) {
-
-        console.error("Fetching Orders Error:", error);
+        console.error(error);
 
         return res.status(500).json({
             success: false,
             message: "Failed to fetch orders"
         });
-
     }
-
 });
 
 
