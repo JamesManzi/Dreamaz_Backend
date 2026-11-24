@@ -29,6 +29,8 @@ const CartRoutes=require("./routes/Cart");
 const createOrder = require("./routes/createOrder");
 const myOrders = require("./routes/myOrders");
 const orderRoutes=require("./routes/orderRoutes");
+const updateTrending = require("./routes/updateTrending");
+const deleteTrending = require("./routes/deleteTrending");
 
 
 
@@ -73,6 +75,8 @@ app.use("/api", auth, CartRoutes);
 app.use("/api", auth, createOrder);
 app.use("/api", auth, myOrders);
 app.use("/api",auth,orderRoutes);
+app.use("/api", auth, updateTrending);
+app.use("/api", auth, deleteTrending);
 
 const Port = process.env.PORT || 8000;
 
