@@ -24,64 +24,71 @@ router.get("/orderStats", async (req, res) => {
         });
     }
 });
+const VALID_STATUSES = ["Pending", "Processing", "Shipped", "Delivered", "Cancelled"];
 
-router.delete("/order/:id",async(req,res)=>{
+// DELETE
+router.delete("/order/:id", /* authMiddleware, */ async (req, res) => {
     try {
-        const order=await Order.findById(req.params.id);
-        if(!order){
-            return res.status(404).json({
-                success:false,
-                message:"Order not Found"
-            })
-        }
-        await Order.findByIdAndDelete(
-            req.params.id,
-            {
-                new:true
-            }
-        );
-        res.status(201).json({
-            success:true,
-            message:"Order Deleted Successfully"
-        })
-    } catch (error) {
-        console.log("deleting orders Error",error);
-        return res.status(500).json({
-            success:false,
-            message:"Internal Server Error"
-        })
-    }
-})
+        const order = await Order.findByIdAndDelete(req.params.id);
 
-router.put("/updateOrder/:id",async(req,res)=>{
-    try {
-        const order=await Order.findById(req.params.id);
-        if(!order){
+        if (!order) {
             return res.status(404).json({
-                success:false,
-                message:"Order not Found"
-            })
+                success: false,
+                message: "Order not found"
+            });
         }
-        await Order.findByIdAndUpdate(
-            req.params.id,
-            {
-                new:true
-            }
-        );
 
-        res.status(201).json({
-            success:true,
-            message:"Order Updated Successfully"
-        })
+        res.status(200).json({
+            success: true,
+            message: "Order deleted successfully"
+        });
     } catch (error) {
-        console.log("Internal Server Error",error);
+        console.log("Deleting order error", error);
         res.status(500).json({
-            success:false,
-            message:"Internal Server Error"
-        })
+            success: false,
+            message: "Internal Server Error"
+        });
     }
-})
+});
 
+// UPDATE STATUS
+router.put("/updateOrder/:id", /* authMiddleware, */ async (req, res) => {
+    try {
+        const { status } = req.body;
+
+        if (!VALID_STATUSES.includes(status)) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid status"
+            });
+        }
+
+        const order = await Order.findByIdAndUpdate(
+            req.params.id,
+            { status },
+            { new: true, runValidators: true }
+        );
+
+        if (!order) {
+            return res.status(404).json({
+                success: false,
+                message: "Order not found"
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            message: "Order updated successfully",
+            order
+        });
+    } catch (error) {
+        console.log("Updating order error", error);
+        res.status(500).json({
+            success: false,
+            message: "Internal Server Error"
+        });
+    }
+});
 // Get all orders
 router.get("/getAllOrders", async (req, res) => {
     try {
