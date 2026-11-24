@@ -6,12 +6,8 @@ const router = express.Router();
 
 const { cloudinary, upload } = require("../cloudinary");
 
-// Import your actual authentication middleware
-const { verifyToken } = require("../middleware/auth");
-
 router.put(
     "/updateTrending/:id",
-    verifyToken,
     upload.array("files"),
     async (req, res) => {
         try {

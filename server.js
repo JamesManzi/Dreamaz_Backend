@@ -29,7 +29,7 @@ const CartRoutes=require("./routes/Cart");
 const createOrder = require("./routes/createOrder");
 const myOrders = require("./routes/myOrders");
 const orderRoutes=require("./routes/orderRoutes");
-const updateTrending = require("./routes/updateTrending");
+const updateTrending = require("./routes/ManageTrendings");
 const deleteTrending = require("./routes/deleteTrending");
 
 

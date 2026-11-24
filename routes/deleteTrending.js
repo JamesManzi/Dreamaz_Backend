@@ -6,12 +6,9 @@ const router = express.Router();
 
 const { cloudinary } = require("../cloudinary");
 
-// Import your actual authentication middleware
-const { verifyToken } = require("../middleware/auth");
 
 router.delete(
     "/deleteTrending/:id",
-    verifyToken,
     async (req, res) => {
         try {
             const { id } = req.params;
