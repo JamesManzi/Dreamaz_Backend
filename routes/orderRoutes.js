@@ -51,23 +51,22 @@ router.delete("/order/:id", /* authMiddleware, */ async (req, res) => {
     }
 });
 
-// UPDATE STATUS
-router.put("/updateOrder/:id", /* authMiddleware, */ async (req, res) => {
+// UPDATE ORDER STATUS
+router.put("/updateOrder/:id", async (req, res) => {
     try {
-        const { status } = req.body;
+        const { orderStatus } = req.body;
 
-        if (!VALID_STATUSES.includes(status)) {
+        console.log("Order ID:", req.params.id);
+        console.log("New order status:", orderStatus);
+
+        if (!VALID_STATUSES.includes(orderStatus)) {
             return res.status(400).json({
                 success: false,
-                message: "Invalid status"
+                message: "Invalid order status"
             });
         }
 
-        const order = await Order.findByIdAndUpdate(
-            req.params.id,
-            { status },
-            { new: true, runValidators: true }
-        );
+        const order = await Order.findById(req.params.id);
 
         if (!order) {
             return res.status(404).json({
@@ -76,19 +75,26 @@ router.put("/updateOrder/:id", /* authMiddleware, */ async (req, res) => {
             });
         }
 
-        res.status(200).json({
+        order.orderStatus = orderStatus;
+
+        await order.save();
+
+        return res.status(200).json({
             success: true,
-            message: "Order updated successfully",
+            message: "Order status updated successfully",
             order
         });
+
     } catch (error) {
-        console.log("Updating order error", error);
-        res.status(500).json({
+        console.error("Updating order error:", error);
+
+        return res.status(500).json({
             success: false,
             message: "Internal Server Error"
         });
     }
 });
+
 // Get all orders
 router.get("/getAllOrders", async (req, res) => {
     try {
