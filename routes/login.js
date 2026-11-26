@@ -96,7 +96,7 @@ router.post("/login", async (req, res) => {
 /* =========================================================
    GOOGLE LOGIN / REGISTRATION
 ========================================================= */
-router.post("/google", async (req, res) => {
+router.post("/google-register", async (req, res) => {
     try {
         const { credential } = req.body;
 
